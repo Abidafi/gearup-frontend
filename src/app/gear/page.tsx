@@ -14,11 +14,12 @@ export default function GearCatalogPage() {
 
   useEffect(() => {
     api.get('/gear').then((res) => {
-      setGearList(res.data.gear || res.data);
+      setGearList(res.data.gear || res.data || []);
       setLoading(false);
       toast.success('Gear catalog loaded successfully!'); // <-- Success toast notification
     }).catch(() => {
       setLoading(false);
+      setGearList([]);
       toast.error('Failed to fetch available gear items.'); // <-- Error toast notification
     });
   }, []);
@@ -36,7 +37,7 @@ export default function GearCatalogPage() {
     <div className="min-h-screen bg-gray-50 p-8">
       <h1 className="text-3xl font-bold mb-6 text-black">Available Sports & Outdoor Gear</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {gearList.map((gear) => (
+        {(Array.isArray(gearList) ? gearList : []).map((gear) => (
           <div key={gear.id} className="bg-white rounded-lg shadow-md overflow-hidden border">
             <div className="relative h-48 w-full bg-gray-200">
               <Image src={gear.images?.[0] || '/placeholder.png'} alt={gear.title} fill className="object-cover" />
