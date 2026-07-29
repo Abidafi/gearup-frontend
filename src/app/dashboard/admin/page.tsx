@@ -36,7 +36,7 @@ export default function AdminDashboard() {
                 <td className="p-4 font-semibold">{u.name}</td>
                 <td className="p-4">{u.email}</td>
                 <td className="p-4">{u.role}</td>
-                <td className="p-4">{u.status || 'ACTIVE'}</td>
+                <td className="p-4">{(u as any).status || 'ACTIVE'}</td>
               </tr>
             ))}
           </tbody>

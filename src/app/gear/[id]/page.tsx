@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/axios';
-import { Gear } from '@/types';
+import { GearItem as Gear } from '@/types';
 import Image from 'next/image';
 
 export default function GearDetailsPage() {
@@ -44,11 +44,11 @@ export default function GearDetailsPage() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden border grid grid-cols-1 md:grid-cols-2">
         <div className="relative h-72 md:h-full bg-gray-200">
-          <Image src={gear.imageUrl || '/placeholder.png'} alt={gear.title} fill className="object-cover" />
+          <Image src={gear.images?.[0] || '/placeholder.png'} alt={gear.title} fill className="object-cover" />
         </div>
         <div className="p-6 flex flex-col justify-between">
           <div>
-            <span className="text-xs font-semibold uppercase text-blue-600">{gear.category}</span>
+            <span className="text-xs font-semibold uppercase text-blue-600">{typeof gear.category === 'object' ? gear.category?.name : gear.category}</span>
             <h1 className="text-3xl font-bold text-black mt-1">{gear.title}</h1>
             <p className="text-2xl font-extrabold text-blue-600 mt-2">${gear.pricePerDay} <span className="text-sm font-normal text-gray-500">/ day</span></p>
             <p className="text-gray-600 mt-4 text-sm">{gear.description}</p>
