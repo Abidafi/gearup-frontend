@@ -5,8 +5,8 @@ import { api } from '@/lib/axios';
 import { GearItem } from '@/types';
 import Link from 'next/link';
 import Image from 'next/image';
-import { SkeletonLoader } from '@/components/SkeletonLoader'; // <-- Import skeleton
-import { toast } from 'sonner'; // <-- Import toast
+import { SkeletonLoader } from '@/components/SkeletonLoader'; 
+import { toast } from 'sonner'; 
 
 export default function GearCatalogPage() {
   const [gearList, setGearList] = useState<GearItem[]>([]);
@@ -14,13 +14,13 @@ export default function GearCatalogPage() {
 
   useEffect(() => {
     api.get('/gear').then((res) => {
-      setGearList(res.data.gear || res.data || []);
+      setGearList(res.data.data || res.data || []);
       setLoading(false);
-      toast.success('Gear catalog loaded successfully!'); // <-- Success toast notification
+      toast.success('Gear catalog loaded successfully!'); 
     }).catch(() => {
       setLoading(false);
       setGearList([]);
-      toast.error('Failed to fetch available gear items.'); // <-- Error toast notification
+      toast.error('Failed to fetch available gear items.'); 
     });
   }, []);
 
@@ -28,7 +28,7 @@ export default function GearCatalogPage() {
     return (
       <div className="min-h-screen bg-gray-50 p-8">
         <h1 className="text-3xl font-bold mb-6 text-black">Available Sports & Outdoor Gear</h1>
-        <SkeletonLoader /> {/* <-- Render professional loading skeleton */}
+        <SkeletonLoader /> 
       </div>
     );
   }
