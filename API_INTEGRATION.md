@@ -52,3 +52,29 @@ This document maps the Next.js frontend pages and components to the deployed Ren
 | **PATCH** | `/api/admin/users/:id` | Update user status (suspend/activate) | Admin User Management Table |
 | **GET** | `/api/admin/gear` | Get all gear listings | Admin Content Moderation |
 | **GET** | `/api/admin/rentals` | Get all rental orders | Admin Platform Rentals View |
+
+## Axios Global Client Configuration (`src/lib/axios.ts`)
+
+All API requests are routed through a centralized Axios instance configured with base URLs and automatic Authorization header injection:
+
+```ts
+import axios from 'axios';
+
+export const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Request interceptor to attach JWT token
+api.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+```
