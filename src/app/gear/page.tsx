@@ -53,7 +53,7 @@ export default function GearCatalogPage() {
                   className="object-cover" 
                 />
               </div>
-              <div className="p-4 flex flex-col flex-grow justify-between">
+              <div className="p-4 flex flex-col grow justify-between">
                 <div>
                   <h3 className="text-lg font-bold text-black">{gear.title}</h3>
                   <p className="text-gray-600 text-sm mt-1">${gear.pricePerDay} / day</p>
