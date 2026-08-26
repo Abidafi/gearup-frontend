@@ -5,28 +5,29 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, LoginFormData } from '@/lib/validations/auth';
 import { api } from '@/lib/axios';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [error, setError] = useState('');
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      setError('');
       const res = await api.post('/auth/login', data);
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
+
+      toast.success('Login successful! Welcome back.');
       
       const role = res.data.user.role;
       if (role === 'ADMIN') router.push('/dashboard/admin');
       else if (role === 'PROVIDER') router.push('/dashboard/provider');
       else router.push('/dashboard/customer');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please check credentials.');
+      const errorMessage = err.response?.data?.message || 'Login failed. Please check credentials.';
+      toast.error(errorMessage);
     }
   };
 
@@ -34,7 +35,6 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-md">
         <h2 className="mb-6 text-2xl font-bold text-center text-gray-900">Login to GearUp 🏋️</h2>
-        {error && <div className="mb-4 rounded bg-red-50 p-3 text-sm text-red-600">{error}</div>}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Email</label>
