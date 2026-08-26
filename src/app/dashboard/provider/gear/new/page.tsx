@@ -1,18 +1,22 @@
 'use client';
+
 import { useForm } from 'react-hook-form';
 import { api } from '@/lib/axios';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function AddGearPage() {
   const router = useRouter();
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, formState: { isSubmitting } } = useForm();
 
   const onSubmit = async (data: any) => {
     try {
       await api.post('/provider/gear', data);
+      toast.success('Gear listing added successfully!');
       router.push('/dashboard/provider');
-    } catch (err) {
-      alert('Failed to add gear listing');
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Failed to add gear listing. Please try again.';
+      toast.error(errorMessage);
     }
   };
 
@@ -36,7 +40,13 @@ export default function AddGearPage() {
           <label className="block text-sm font-medium text-black">Image URL</label>
           <input {...register('imageUrl')} required className="w-full border p-2 rounded text-black" />
         </div>
-        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Submit Listing</button>
+        <button 
+          type="submit" 
+          disabled={isSubmitting} 
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50 transition"
+        >
+          {isSubmitting ? 'Submitting listing...' : 'Submit Listing'}
+        </button>
       </form>
     </div>
   );

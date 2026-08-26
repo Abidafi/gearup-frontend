@@ -16,11 +16,11 @@ export default function GearCatalogPage() {
     api.get('/gear').then((res) => {
       setGearList(res.data.data || res.data || []);
       setLoading(false);
-      toast.success('Gear catalog loaded successfully!'); 
-    }).catch(() => {
+    }).catch((err: any) => {
       setLoading(false);
       setGearList([]);
-      toast.error('Failed to fetch available gear items.'); 
+      const errorMessage = err.response?.data?.message || 'Failed to fetch available gear items.';
+      toast.error(errorMessage); 
     });
   }, []);
 
@@ -36,22 +36,39 @@ export default function GearCatalogPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <h1 className="text-3xl font-bold mb-6 text-black">Available Sports & Outdoor Gear</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {(Array.isArray(gearList) ? gearList : []).map((gear) => (
-          <div key={gear.id} className="bg-white rounded-lg shadow-md overflow-hidden border">
-            <div className="relative h-48 w-full bg-gray-200">
-              <Image src={gear.images?.[0] || '/placeholder.png'} alt={gear.title} fill className="object-cover" />
+      
+      {gearList.length === 0 ? (
+        <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500 border">
+          No gear items are currently available for rent. Please check back later!
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {gearList.map((gear) => (
+            <div key={gear.id} className="bg-white rounded-lg shadow-md overflow-hidden border flex flex-col justify-between">
+              <div className="relative h-48 w-full bg-gray-200">
+                <Image 
+                  src={gear.images?.[0] || '/placeholder.png'} 
+                  alt={gear.title} 
+                  fill 
+                  className="object-cover" 
+                />
+              </div>
+              <div className="p-4 flex flex-col flex-grow justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-black">{gear.title}</h3>
+                  <p className="text-gray-600 text-sm mt-1">${gear.pricePerDay} / day</p>
+                </div>
+                <Link 
+                  href={`/gear/${gear.id}`} 
+                  className="mt-4 block text-center bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
+                >
+                  View Details & Rent
+                </Link>
+              </div>
             </div>
-            <div className="p-4">
-              <h3 className="text-lg font-bold text-black">{gear.title}</h3>
-              <p className="text-gray-600 text-sm mt-1">${gear.pricePerDay} / day</p>
-              <Link href={`/gear/${gear.id}`} className="mt-4 block text-center bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">
-                View Details & Rent
-              </Link>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
