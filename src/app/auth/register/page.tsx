@@ -17,6 +17,25 @@ export default function RegisterPage() {
     try {
       const res = await api.post('/auth/register', data);
       
+      // If your backend returns a token upon registration, we can set it and auto-login:
+      if (res.data?.token) {
+        const token = res.data.token;
+        localStorage.setItem('token', token);
+        document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax`;
+        
+        if (res.data?.user) {
+          localStorage.setItem('user', JSON.stringify(res.data.user));
+          const role = res.data.user.role;
+          toast.success('Registration successful! Welcome.');
+          
+          if (role === 'ADMIN') router.push('/dashboard/admin');
+          else if (role === 'PROVIDER') router.push('/dashboard/provider');
+          else router.push('/dashboard/customer');
+          return;
+        }
+      }
+
+      // Fallback if backend requires explicit login after register
       toast.success('Registration successful! Please login to continue.');
       router.push('/auth/login');
     } catch (err: any) {
