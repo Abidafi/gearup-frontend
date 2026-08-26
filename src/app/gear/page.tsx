@@ -87,7 +87,7 @@ export default function GearCatalogPage() {
               />
             </div>
             <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
-              {['ALL', 'FITNESS', 'OUTDOOR', 'CYCLING'].map((cat) => (
+              {['ALL', 'FITNESS', 'CAMPING', 'CYCLING', 'WATER SPORTS'].map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
