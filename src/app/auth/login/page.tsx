@@ -16,7 +16,12 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       const res = await api.post('/auth/login', data);
-      localStorage.setItem('token', res.data.token);
+      const token = res.data.token;
+
+      // Save token to localStorage and set cookie for Next.js middleware
+      localStorage.setItem('token', token);
+      document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax`;
+      
       localStorage.setItem('user', JSON.stringify(res.data.user));
 
       toast.success('Login successful! Welcome back.');
