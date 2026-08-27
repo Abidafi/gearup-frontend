@@ -10,7 +10,7 @@ interface Order {
   renterName: string;
   startDate: string;
   endDate: string;
-  status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
+  status: 'PLACED' | 'CONFIRMED' | 'PAID' | 'PICKED_UP' | 'RETURNED' | 'CANCELLED';
   totalPrice: number;
 }
 
@@ -57,13 +57,13 @@ export default function ProviderOrdersPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gear</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Renter</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gear</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Renter</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dates</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200 text-black text-sm">
@@ -78,34 +78,36 @@ export default function ProviderOrdersPage() {
                   <td className="px-6 py-4 whitespace-nowrap">${order.totalPrice}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      order.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
-                      order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                      order.status === 'COMPLETED' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'
+                      order.status === 'PLACED' ? 'bg-amber-100 text-amber-800' :
+                      order.status === 'CONFIRMED' ? 'bg-blue-100 text-blue-800' :
+                      order.status === 'PAID' ? 'bg-purple-100 text-purple-800' :
+                      order.status === 'PICKED_UP' ? 'bg-green-100 text-green-800' :
+                      order.status === 'RETURNED' ? 'bg-gray-100 text-gray-800' : 'bg-red-100 text-red-800'
                     }`}>
                       {order.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                    {order.status === 'PENDING' && (
+                    {order.status === 'PLACED' && (
                       <button
                         onClick={() => handleStatusUpdate(order.id, 'CONFIRMED')}
-                        className="text-green-600 hover:text-green-900 bg-green-50 px-3 py-1 rounded border border-green-200"
+                        className="text-green-600 bg-green-50 px-3 py-1 rounded border border-green-200 hover:bg-green-100"
                       >
                         Confirm
                       </button>
                     )}
-                    {order.status === 'CONFIRMED' && (
+                    {order.status === 'PAID' && (
                       <button
-                        onClick={() => handleStatusUpdate(order.id, 'COMPLETED')}
-                        className="text-blue-600 hover:text-blue-900 bg-blue-50 px-3 py-1 rounded border border-blue-200"
+                        onClick={() => handleStatusUpdate(order.id, 'PICKED_UP')}
+                        className="text-purple-600 bg-purple-50 px-3 py-1 rounded border border-purple-200 hover:bg-purple-100"
                       >
-                        Complete
+                        Mark Picked Up
                       </button>
                     )}
-                    {order.status !== 'CANCELLED' && order.status !== 'COMPLETED' && (
+                    {order.status !== 'CANCELLED' && order.status !== 'RETURNED' && order.status !== 'PICKED_UP' && (
                       <button
                         onClick={() => handleStatusUpdate(order.id, 'CANCELLED')}
-                        className="text-red-600 hover:text-red-900 bg-red-50 px-3 py-1 rounded border border-red-200"
+                        className="text-red-600 bg-red-50 px-3 py-1 rounded border border-red-200 hover:bg-red-100"
                       >
                         Cancel
                       </button>
