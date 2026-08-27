@@ -1,51 +1,58 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, use } from 'react';
 import { api } from '@/lib/axios';
 import { toast } from 'sonner';
 
-export default function PaymentPage() {
-  const { id } = useParams(); // This is the rentalOrderId
+export default function PaymentInitiationPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const orderId = resolvedParams.id;
   const [loading, setLoading] = useState(false);
 
   const handleStripeCheckout = async () => {
     try {
       setLoading(true);
-
-      // Call your backend endpoint that initializes the Stripe checkout session
-      const res = await api.post('/payments/create', { 
-        rentalOrderId: id 
-      });
-
-      // Assuming your backend returns the Stripe checkout URL or session URL
-      const checkoutUrl = res.data.url || res.data.paymentUrl || res.data.data?.url;
-
+      const res = await api.post('/payments/create', { orderId });
+      
+      // Redirect to Stripe Checkout session URL or payment gateway URL returned by backend
+      const checkoutUrl = res.data.url || res.data.checkoutUrl;
       if (checkoutUrl) {
-        toast.success('Redirecting to secure checkout...');
-        window.location.href = checkoutUrl; // Redirect to live Stripe Checkout
+        window.location.href = checkoutUrl;
       } else {
-        throw new Error('Stripe checkout URL not returned from backend.');
+        toast.error('Payment gateway session URL not received.');
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to initialize Stripe payment. Please try again.';
-      toast.error(errorMessage);
+      toast.error(err.response?.data?.message || 'Failed to initiate payment.');
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow border text-center">
-        <h1 className="text-2xl font-bold text-black mb-2">Complete Your Payment 💳</h1>
-        <p className="text-gray-600 text-sm mb-6">Secure checkout powered by Stripe.</p>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+      <div className="bg-white p-8 rounded-xl shadow-sm border max-w-md w-full text-center space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-black">Complete Your Payment 💳</h1>
+          <p className="text-gray-500 text-sm mt-1">Secure checkout via Stripe for Order #{orderId.slice(-6)}</p>
+        </div>
+
+        <div className="border-t border-b py-4 text-left space-y-2">
+          <div className="flex justify-between text-sm text-black">
+            <span className="text-gray-600">Order Reference:</span>
+            <span className="font-semibold">#{orderId}</span>
+          </div>
+          <div className="flex justify-between text-sm text-black">
+            <span className="text-gray-600">Gateway Provider:</span>
+            <span className="font-semibold">Stripe Checkout</span>
+          </div>
+        </div>
 
         <button
           onClick={handleStripeCheckout}
           disabled={loading}
-          className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition disabled:opacity-50"
+          className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
         >
-          {loading ? 'Redirecting to Stripe...' : 'Pay Securely with Stripe'}
+          {loading ? 'Redirecting to Checkout...' : 'Proceed to Stripe Payment'}
         </button>
       </div>
     </div>
