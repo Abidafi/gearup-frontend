@@ -12,7 +12,6 @@ export default function ProviderDashboard() {
   useEffect(() => {
     const fetchProviderData = async () => {
       try {
-        // Fetch provider's listed gear
         const res = await api.get('/provider/gear');
         setGearList(res.data.gear || res.data);
       } catch (err: any) {
@@ -24,6 +23,18 @@ export default function ProviderDashboard() {
 
     fetchProviderData();
   }, []);
+
+  const handleDelete = async (id: string | number) => {
+    if (!confirm('Are you sure you want to delete this gear listing?')) return;
+
+    try {
+      await api.delete(`/provider/gear/${id}`);
+      setGearList((prev) => prev.filter((item) => item.id !== id));
+      toast.success('Gear listing deleted successfully.');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to delete gear listing.');
+    }
+  };
 
   if (loading) {
     return <div className="p-10 text-center text-black">Loading provider dashboard...</div>;
@@ -39,12 +50,20 @@ export default function ProviderDashboard() {
             <h1 className="text-3xl font-bold text-black">Provider Dashboard 🏪</h1>
             <p className="text-gray-500 text-sm mt-1">Manage your gear listings and track performance</p>
           </div>
-          <Link 
-            href="/dashboard/provider/gear/new" 
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
-          >
-            + Add New Gear
-          </Link>
+          <div className="flex gap-3">
+            <Link 
+              href="/dashboard/provider/orders" 
+              className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-50 transition"
+            >
+              Manage Orders
+            </Link>
+            <Link 
+              href="/dashboard/provider/gear/new" 
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
+            >
+              + Add New Gear
+            </Link>
+          </div>
         </div>
 
         {/* Metric Cards */}
@@ -53,10 +72,10 @@ export default function ProviderDashboard() {
             <h3 className="text-gray-500 text-sm font-semibold">Total Inventory Listed</h3>
             <p className="text-3xl font-bold text-black mt-2">{gearList.length}</p>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <Link href="/dashboard/provider/orders" className="bg-white p-6 rounded-lg shadow-sm border block hover:border-blue-500 transition">
             <h3 className="text-gray-500 text-sm font-semibold">Incoming Orders</h3>
-            <p className="text-3xl font-bold text-black mt-2">Active</p>
-          </div>
+            <p className="text-3xl font-bold text-black mt-2">View Orders &rarr;</p>
+          </Link>
         </div>
 
         {/* Inventory Section */}
@@ -78,6 +97,7 @@ export default function ProviderDashboard() {
                     <th className="p-4">Category</th>
                     <th className="p-4">Price / Day</th>
                     <th className="p-4">Status</th>
+                    <th className="p-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y text-sm text-black">
@@ -90,6 +110,14 @@ export default function ProviderDashboard() {
                         <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-green-50 text-green-700">
                           {item.status || 'AVAILABLE'}
                         </span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="text-red-600 hover:text-red-800 font-medium text-xs px-2.5 py-1 rounded border border-red-200 hover:bg-red-50 transition"
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   ))}
