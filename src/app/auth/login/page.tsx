@@ -18,22 +18,30 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       const res = await api.post('/auth/login', data);
-      const token = res.data.token;
+      
+      const token = res.data.token || res.data.accessToken || res.data.data?.token;
+      const user = res.data.user || res.data.data?.user || res.data.data;
+
+      if (!token) {
+        throw new Error('Authentication token missing from response.');
+      }
 
       // Save token to localStorage and set cookie for Next.js middleware
       localStorage.setItem('token', token);
       document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax`;
       
-      localStorage.setItem('user', JSON.stringify(res.data.user));
+      if (user && typeof user === 'object') {
+        localStorage.setItem('user', JSON.stringify(user));
+      }
 
       toast.success('Login successful! Welcome back.');
       
-      const role = res.data.user.role;
+      const role = user?.role;
       if (role === 'ADMIN') router.push('/dashboard/admin');
       else if (role === 'PROVIDER') router.push('/dashboard/provider');
       else router.push('/dashboard/customer');
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Login failed. Please check credentials.';
+      const errorMessage = err.response?.data?.message || err.message || 'Login failed. Please check credentials.';
       toast.error(errorMessage);
     }
   };
