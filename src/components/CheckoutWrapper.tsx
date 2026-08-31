@@ -6,7 +6,9 @@ import { toast } from 'sonner';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+// Safe singleton initialization outside component to prevent re-instantiation loops
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 function CheckoutForm({ orderId }: { orderId: string }) {
   const stripe = useStripe();
@@ -22,7 +24,7 @@ function CheckoutForm({ orderId }: { orderId: string }) {
     const result = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/payment/success?orderId=${orderId}`,
+        return_url: `${window.location.origin}/dashboard/customer/orders`,
       },
     });
 
@@ -47,6 +49,14 @@ function CheckoutForm({ orderId }: { orderId: string }) {
 }
 
 export default function CheckoutWrapper({ clientSecret, orderId }: { clientSecret: string; orderId: string }) {
+  if (!stripePromise) {
+    return <div className="text-red-500 text-center">Stripe Publishable Key is missing or invalid.</div>;
+  }
+
+  if (!clientSecret || typeof clientSecret !== 'string' || !clientSecret.startsWith('pi_')) {
+    return <div className="text-red-500 text-center">Invalid Payment Intent client secret received from server.</div>;
+  }
+
   return (
     <Elements stripe={stripePromise} options={{ clientSecret }}>
       <CheckoutForm orderId={orderId} />
