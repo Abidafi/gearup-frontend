@@ -193,7 +193,7 @@ export default function GearDetailsPage() {
                     min={todayStr}
                     value={startDate} 
                     onChange={(e) => setStartDate(e.target.value)} 
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-600 transition-colors" 
+                    className="w-full bg-slate-400 border border-slate-300 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-600 transition-colors" 
                   />
                 </div>
                 <div className="space-y-1">
@@ -205,7 +205,7 @@ export default function GearDetailsPage() {
                     min={startDate || todayStr}
                     value={endDate} 
                     onChange={(e) => setEndDate(e.target.value)} 
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-600 transition-colors" 
+                    className="w-full bg-slate-400 border border-slate-300 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-600 transition-colors" 
                   />
                 </div>
               </div>
