@@ -24,7 +24,7 @@ function CheckoutForm({ orderId }: { orderId: string }) {
     const result = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/dashboard/customer/orders`,
+        return_url: `${window.location.origin}/payment/success?orderId=${orderId}`,
       },
     });
 
