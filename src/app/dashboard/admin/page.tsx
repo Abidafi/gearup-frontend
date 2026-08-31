@@ -50,11 +50,19 @@ export default function AdminDashboard() {
         api.get('/admin/rentals'),
       ]);
 
-      setUsers(usersRes.data.users || usersRes.data);
-      setGearListings(gearRes.data.gear || gearRes.data);
-      setRentals(rentalsRes.data.rentals || rentalsRes.data);
+      // Safely extract arrays from various possible response formats
+      const usersData = usersRes.data.users || usersRes.data.data || usersRes.data;
+      const gearData = gearRes.data.gear || gearRes.data.data || gearRes.data;
+      const rentalsData = rentalsRes.data.rentals || rentalsRes.data.data || rentalsRes.data;
+
+      setUsers(Array.isArray(usersData) ? usersData : []);
+      setGearListings(Array.isArray(gearData) ? gearData : []);
+      setRentals(Array.isArray(rentalsData) ? rentalsData : []);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to load admin data.');
+      setUsers([]);
+      setGearListings([]);
+      setRentals([]);
     } finally {
       setLoading(false);
     }
@@ -101,16 +109,6 @@ export default function AdminDashboard() {
             <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard 🛡️</h1>
             <p className="text-gray-500 mt-1 text-sm">Platform moderation, user management, and statistics overview</p>
           </div>
-          <button
-            onClick={() => {
-              localStorage.clear();
-              router.push('/auth/login');
-              toast.success('Logged out successfully');
-            }}
-            className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition shadow-sm"
-          >
-            Logout
-          </button>
         </div>
 
         {/* Global Platform Statistics Cards */}

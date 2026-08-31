@@ -23,10 +23,13 @@ export default function CustomerDashboard() {
   const fetchCustomerOrders = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/customer/orders');
-      setOrders(res.data.orders || res.data);
+      const res = await api.get('/rentals');
+      const responseData = res.data.data || res.data.orders || res.data;
+      const ordersArray = Array.isArray(responseData) ? responseData : [];
+      setOrders(ordersArray);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to load your orders.');
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -54,16 +57,6 @@ export default function CustomerDashboard() {
             <h1 className="text-3xl font-bold text-gray-900">My Rental Dashboard 🎒</h1>
             <p className="text-gray-500 mt-1 text-sm">Track your gear rentals, process payments, and leave reviews</p>
           </div>
-          <button
-            onClick={() => {
-              localStorage.clear();
-              router.push('/auth/login');
-              toast.success('Logged out successfully');
-            }}
-            className="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition shadow-sm"
-          >
-            Logout
-          </button>
         </div>
 
         {/* Orders Table Card */}

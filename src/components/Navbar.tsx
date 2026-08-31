@@ -13,14 +13,25 @@ export default function Navbar() {
 
   useEffect(() => {
     setMounted(true);
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error('Failed to parse user from localStorage');
+    const checkUser = () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (e) {
+          console.error('Failed to parse user from localStorage');
+          setUser(null);
+        }
+      } else {
+        setUser(null);
       }
-    }
+    };
+
+    checkUser();
+
+    // Listen for custom auth changes across the app
+    window.addEventListener('auth-change', checkUser);
+    return () => window.removeEventListener('auth-change', checkUser);
   }, []);
 
   const handleLogout = () => {
@@ -28,6 +39,7 @@ export default function Navbar() {
     localStorage.removeItem('user');
     document.cookie = 'token=; path=/; max-age=0';
     setUser(null);
+    window.dispatchEvent(new Event('auth-change')); // Notify Navbar instantly
     router.push('/auth/login');
   };
 
