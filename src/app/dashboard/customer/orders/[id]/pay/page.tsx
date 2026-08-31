@@ -6,7 +6,8 @@ import { toast } from 'sonner';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 function CheckoutForm({ orderId }: { orderId: string }) {
   const stripe = useStripe();
@@ -30,8 +31,6 @@ function CheckoutForm({ orderId }: { orderId: string }) {
       toast.error(result.error.message || 'Payment failed.');
       setLoading(false);
     }
-    // Note: If successful, Stripe automatically redirects to the return_url,
-    // so no manual success handling is required here.
   };
 
   return (
@@ -55,7 +54,10 @@ export default function PaymentInitiationPage({ params }: { params: Promise<{ id
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Request clientSecret from backend on page load
+    if (!stripeKey) {
+      toast.error('Stripe publishable key is missing in environment variables.');
+    }
+
     api.post('/payments/create', { rentalOrderId: orderId })
       .then((res) => {
         const secret = res.data?.data?.clientSecret || res.data?.clientSecret;
@@ -82,12 +84,12 @@ export default function PaymentInitiationPage({ params }: { params: Promise<{ id
 
         {loading ? (
           <div className="text-center py-8 text-gray-500">Initializing secure payment...</div>
-        ) : clientSecret ? (
+        ) : clientSecret && stripePromise ? (
           <Elements stripe={stripePromise} options={{ clientSecret }}>
             <CheckoutForm orderId={orderId} />
           </Elements>
         ) : (
-          <div className="text-center py-8 text-red-500">Could not load payment gateway.</div>
+          <div className="text-center py-8 text-red-500">Could not load payment gateway. Check configuration keys.</div>
         )}
       </div>
     </div>
