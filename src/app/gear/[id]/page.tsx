@@ -18,6 +18,9 @@ export default function GearDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  // Get current date string (YYYY-MM-DD) to prevent past date selection
+  const todayStr = new Date().toISOString().split('T')[0];
+
   useEffect(() => {
     if (id) {
       api.get(`/gear/${id}`)
@@ -42,24 +45,52 @@ export default function GearDetailsPage() {
     return String(cat);
   };
 
+  // Pre-calculate price properties so they are in scope for handleRentNow
+  const pricePerDay = gear ? ((gear as any).pricePerDay || (gear as any).price || 0) : 0;
+
   const handleRentNow = async () => {
     if (!startDate || !endDate) {
       toast.error('Please select both start and end dates.');
       return;
     }
 
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (end <= start) {
+      toast.error('End date must be after the start date.');
+      return;
+    }
+
+    // Calculate total days and total price safely
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const calculatedTotalPrice = diffDays * pricePerDay;
+
     try {
       setSubmitting(true);
+      
+      const formattedStartDate = start.toISOString();
+      const formattedEndDate = end.toISOString();
+
       const res = await api.post('/rentals', {
-        gearId: id,
-        startDate,
-        endDate,
+        gearItemId: id,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
+        totalPrice: calculatedTotalPrice,
       });
-      const rentalId = res.data.rental?.id || res.data.id;
+      
+      // Robustly unwrap rental ID from various potential response schemas
+      const rentalId = res.data?.rental?.id || res.data?.data?.id || res.data?.id;
+      
+      if (!rentalId) {
+        throw new Error('Rental ID was not returned by the server.');
+      }
+
       toast.success('Rental order created successfully!');
       router.push(`/dashboard/customer/orders/${rentalId}/pay`);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to place rental order. Please ensure dates are valid and you are logged in.';
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to place rental order. Please ensure dates are valid and you are logged in.';
       toast.error(errorMessage);
       setSubmitting(false);
     }
@@ -93,7 +124,6 @@ export default function GearDetailsPage() {
     (gear as any).imageUrl || 
     (gear as any).image || 
     '/placeholder.png';
-  const pricePerDay = (gear as any).pricePerDay || (gear as any).price || 0;
   const description = (gear as any).description || 'High-performance equipment maintained and verified for safe rentals.';
   const categoryLabel = getCategoryName(gear);
 
@@ -149,6 +179,7 @@ export default function GearDetailsPage() {
                   <label className="text-xs font-medium text-slate-400">Start Date</label>
                   <input 
                     type="date" 
+                    min={todayStr}
                     value={startDate} 
                     onChange={(e) => setStartDate(e.target.value)} 
                     className="w-full bg-slate-500 border border-slate-400 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-600 transition-colors" 
@@ -158,6 +189,7 @@ export default function GearDetailsPage() {
                   <label className="text-xs font-medium text-slate-400">End Date</label>
                   <input 
                     type="date" 
+                    min={startDate || todayStr}
                     value={endDate} 
                     onChange={(e) => setEndDate(e.target.value)} 
                     className="w-full bg-slate-500 border border-slate-400 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-blue-600 transition-colors" 
