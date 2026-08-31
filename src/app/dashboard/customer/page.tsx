@@ -8,7 +8,11 @@ import Link from 'next/link';
 
 interface RentalOrder {
   id: string;
-  gearName: string;
+  gearItem?: {
+    title?: string;
+    name?: string;
+  };
+  gearName?: string;
   startDate: string;
   endDate: string;
   totalPrice: number;
@@ -89,9 +93,9 @@ export default function CustomerDashboard() {
                   orders.map((order) => (
                     <tr key={order.id} className="hover:bg-gray-50/50 transition">
                       <td className="p-4 font-medium">#{order.id.slice(-6)}</td>
-                      <td className="p-4 text-gray-900 font-semibold">{order.gearName}</td>
+                      <td className="p-4 text-gray-900 font-semibold">{order.gearItem?.title || order.gearItem?.name || order.gearName || 'N/A'}</td>
                       <td className="p-4 text-gray-600">
-                        {order.startDate} to {order.endDate}
+                        {order.startDate.split('T')[0]} to {order.endDate.split('T')[0]}
                       </td>
                       <td className="p-4 font-medium">${order.totalPrice}</td>
                       <td className="p-4">
