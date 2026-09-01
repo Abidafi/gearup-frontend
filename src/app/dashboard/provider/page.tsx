@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 export default function ProviderDashboard() {
   const [gearList, setGearList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | number | null>(null);
 
   useEffect(() => {
     const fetchProviderData = async () => {
@@ -24,15 +25,17 @@ export default function ProviderDashboard() {
     fetchProviderData();
   }, []);
 
-  const handleDelete = async (id: string | number) => {
-    if (!confirm('Are you sure you want to delete this gear listing?')) return;
+  const confirmDelete = async () => {
+    if (!deleteId) return;
 
     try {
-      await api.delete(`/provider/gear/${id}`);
-      setGearList((prev) => prev.filter((item) => item.id !== id));
+      await api.delete(`/provider/gear/${deleteId}`);
+      setGearList((prev) => prev.filter((item) => item.id !== deleteId));
       toast.success('Gear listing deleted successfully.');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to delete gear listing.');
+    } finally {
+      setDeleteId(null);
     }
   };
 
@@ -100,11 +103,11 @@ export default function ProviderDashboard() {
                     <th className="p-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y text-sm text-black">
+                <tbody className="text-sm text-black">
                   {gearList.map((item) => (
                     <tr key={item.id} className="hover:bg-gray-50/50">
                       <td className="p-4 font-medium">{item.title}</td>
-                      <td className="p-4 text-gray-600">{item.category}</td>
+                      <td className="p-4 text-gray-600">{item.category?.name || 'N/A'}</td>
                       <td className="p-4">${item.pricePerDay}</td>
                       <td className="p-4">
                         <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-green-50 text-green-700">
@@ -113,7 +116,7 @@ export default function ProviderDashboard() {
                       </td>
                       <td className="p-4 text-right">
                         <button
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() => setDeleteId(item.id)}
                           className="text-red-600 hover:text-red-800 font-medium text-xs px-2.5 py-1 rounded border border-red-200 hover:bg-red-50 transition"
                         >
                           Delete
@@ -126,6 +129,34 @@ export default function ProviderDashboard() {
             </div>
           )}
         </div>
+
+        {/* Custom Confirmation Modal */}
+        {deleteId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+            <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4 border animate-in fade-in zoom-in-95 duration-200">
+              <h3 className="text-lg font-bold text-gray-900">Are you sure?</h3>
+              <p className="text-sm text-gray-600">
+                Do you really want to delete this gear listing? This process cannot be undone.
+              </p>
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setDeleteId(null)}
+                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDelete}
+                  className="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition"
+                >
+                  Yes, Delete Item
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

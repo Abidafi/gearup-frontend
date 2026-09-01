@@ -22,9 +22,22 @@ export default function ProviderOrdersPage() {
     try {
       setLoading(true);
       const res = await api.get('/provider/orders');
-      setOrders(res.data.orders || res.data);
+      
+      const rawOrders = res.data.orders || res.data.data || res.data;
+      const orderList = Array.isArray(rawOrders) ? rawOrders : [];
+
+      const formattedOrders = orderList.map((order: any) => ({
+        ...order,
+        gearName: order.gearItem?.title || order.gearName || 'N/A',
+        renterName: order.customer?.name || order.renterName || 'N/A',
+        startDate: order.startDate ? order.startDate.split('T')[0] : '',
+        endDate: order.endDate ? order.endDate.split('T')[0] : '',
+      }));
+
+      setOrders(formattedOrders);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to fetch incoming orders');
+      setOrders([]);
     } finally {
       setLoading(false);
     }
