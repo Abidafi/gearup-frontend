@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { api } from '@/lib/axios';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import Link from 'next/link';
+import { useEffect, useState } from "react";
+import { api } from "@/lib/axios";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import Link from "next/link";
 
 interface RentalOrder {
   id: string;
@@ -35,20 +35,24 @@ export default function CustomerDashboard() {
       setLoading(true);
       // Fetch rentals and user's reviews simultaneously
       const [rentalsRes, reviewsRes] = await Promise.all([
-        api.get('/rentals'),
-        api.get('/reviews/my-reviews').catch(() => ({ data: { data: [] } })) // Fallback if endpoint differs, or check user reviews
+        api.get("/rentals"),
+        api.get("/reviews/my-reviews").catch(() => ({ data: { data: [] } })), // Fallback if endpoint differs, or check user reviews
       ]);
 
-      const rentalData = rentalsRes.data.data || rentalsRes.data.orders || rentalsRes.data;
+      const rentalData =
+        rentalsRes.data.data || rentalsRes.data.orders || rentalsRes.data;
       setOrders(Array.isArray(rentalData) ? rentalData : []);
 
       // Extract reviewed gear IDs or handle review matching
       const reviewData = reviewsRes.data.data || reviewsRes.data || [];
-      const gearIdsWithReviews = reviewData.map((r: any) => r.gearItemId || r.gearItem?.id);
+      const gearIdsWithReviews = reviewData.map(
+        (r: any) => r.gearItemId || r.gearItem?.id,
+      );
       setReviewedGearIds(gearIdsWithReviews);
-
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to load your dashboard data.');
+      toast.error(
+        err.response?.data?.message || "Failed to load your dashboard data.",
+      );
       setOrders([]);
     } finally {
       setLoading(false);
@@ -62,7 +66,9 @@ export default function CustomerDashboard() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <p className="text-gray-600 animate-pulse font-medium">Loading Customer Dashboard...</p>
+        <p className="text-gray-600 animate-pulse font-medium">
+          Loading Customer Dashboard...
+        </p>
       </div>
     );
   }
@@ -70,18 +76,25 @@ export default function CustomerDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">My Rental Dashboard 🎒</h1>
-            <p className="text-gray-500 mt-1 text-sm">Track your gear rentals, process payments, and leave reviews</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              My Rental Dashboard 🎒
+            </h1>
+            <p className="text-gray-500 mt-1 text-sm">
+              Track your gear rentals, process payments, and leave reviews
+            </p>
           </div>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-6 border-b border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-800">Rental Orders</h2>
-            <p className="text-sm text-gray-500 mt-0.5">Overview of all your active and past gear requests</p>
+            <h2 className="text-xl font-semibold text-gray-800">
+              Rental Orders
+            </h2>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Overview of all your active and past gear requests
+            </p>
           </div>
 
           <div className="overflow-x-auto">
@@ -110,31 +123,51 @@ export default function CustomerDashboard() {
                     const isReviewed = reviewedGearIds.includes(gearTargetId!);
 
                     return (
-                      <tr key={order.id} className="hover:bg-gray-50/50 transition">
-                        <td className="p-4 font-medium">#{order.id.slice(-6)}</td>
-                        <td className="p-4 text-gray-900 font-semibold">{order.gearItem?.title || order.gearItem?.name || order.gearName || 'N/A'}</td>
+                      <tr
+                        key={order.id}
+                        className="hover:bg-gray-50/50 transition"
+                      >
+                        <td className="p-4 font-medium">
+                          #{order.id.slice(-6)}
+                        </td>
+                        <td className="p-4 text-gray-900 font-semibold">
+                          {order.gearItem?.title ||
+                            order.gearItem?.name ||
+                            order.gearName ||
+                            "N/A"}
+                        </td>
                         <td className="p-4 text-gray-600">
-                          {order.startDate.split('T')[0]} to {order.endDate.split('T')[0]}
+                          {order.startDate.split("T")[0]} to{" "}
+                          {order.endDate.split("T")[0]}
                         </td>
                         <td className="p-4 font-medium text-gray-800">
-                          {order.quantity ?? order.numStocks ?? order.stocks ?? 1}
+                          {order.quantity ??
+                            order.numStocks ??
+                            order.stocks ??
+                            1}
                         </td>
                         <td className="p-4 font-medium">${order.totalPrice}</td>
                         <td className="p-4">
                           <span
                             className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
-                              order.status === 'PLACED' ? 'bg-amber-100 text-amber-800' :
-                              order.status === 'CONFIRMED' ? 'bg-blue-100 text-blue-800' :
-                              order.status === 'PAID' ? 'bg-purple-100 text-purple-800' :
-                              order.status === 'PICKED_UP' ? 'bg-green-100 text-green-800' :
-                              order.status === 'RETURNED' ? 'bg-gray-100 text-gray-800' : 'bg-red-100 text-red-800'
+                              order.status === "PLACED"
+                                ? "bg-amber-100 text-amber-800"
+                                : order.status === "CONFIRMED"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : order.status === "PAID"
+                                    ? "bg-purple-100 text-purple-800"
+                                    : order.status === "PICKED_UP"
+                                      ? "bg-green-100 text-green-800"
+                                      : order.status === "RETURNED"
+                                        ? "bg-gray-100 text-gray-800"
+                                        : "bg-red-100 text-red-800"
                             }`}
                           >
                             {order.status}
                           </span>
                         </td>
                         <td className="p-4 text-right space-x-2">
-                          {order.status === 'CONFIRMED' && (
+                          {order.status === "CONFIRMED" && (
                             <Link
                               href={`/dashboard/customer/orders/${order.id}/pay`}
                               className="inline-block bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-blue-700 transition"
@@ -142,11 +175,14 @@ export default function CustomerDashboard() {
                               Pay Now
                             </Link>
                           )}
-                          {order.status === 'RETURNED' && (
-                            isReviewed ? (
-                              <span className="inline-block bg-gray-200 text-gray-500 text-xs font-semibold px-3 py-1.5 rounded cursor-not-allowed select-none">
-                                Review Submitted
-                              </span>
+                          {order.status === "RETURNED" &&
+                            (isReviewed ? (
+                              <Link
+                                href={`/dashboard/customer/orders/${order.id}/review-details`}
+                                className="inline-block bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold px-3 py-1.5 rounded transition"
+                              >
+                                View Review
+                              </Link>
                             ) : (
                               <Link
                                 href={`/dashboard/customer/orders/${order.id}/review`}
@@ -154,8 +190,7 @@ export default function CustomerDashboard() {
                               >
                                 Leave Review
                               </Link>
-                            )
-                          )}
+                            ))}
                           <Link
                             href={`/dashboard/customer/orders/${order.id}`}
                             className="inline-block border border-gray-300 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded hover:bg-gray-50 transition"
@@ -171,7 +206,6 @@ export default function CustomerDashboard() {
             </table>
           </div>
         </div>
-
       </div>
     </div>
   );
