@@ -71,7 +71,7 @@ export default function LeaveReviewPage({ params }: { params: Promise<{ id: stri
       setIsSubmitted(true);
       toast.success('Thank you! Your review has been submitted successfully.');
       setTimeout(() => {
-        router.push('/dashboard/customer');
+        router.push(`/dashboard/customer/orders/${orderId}/review-details`);
       }, 1500);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to submit review.');
