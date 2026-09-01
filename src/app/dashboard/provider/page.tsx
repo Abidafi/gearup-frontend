@@ -66,12 +66,6 @@ export default function ProviderDashboard() {
           </div>
           <div className="flex gap-3">
             <Link
-              href="/dashboard/provider/orders"
-              className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-50 transition"
-            >
-              Manage Orders
-            </Link>
-            <Link
               href="/dashboard/provider/gear/new"
               className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
             >

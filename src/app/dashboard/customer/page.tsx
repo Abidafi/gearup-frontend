@@ -15,6 +15,9 @@ interface RentalOrder {
   gearName?: string;
   startDate: string;
   endDate: string;
+  quantity?: number;
+  numStocks?: number;
+  stocks?: number;
   totalPrice: number;
   status: 'PLACED' | 'CONFIRMED' | 'PAID' | 'PICKED_UP' | 'RETURNED' | 'CANCELLED';
 }
@@ -77,6 +80,7 @@ export default function CustomerDashboard() {
                   <th className="p-4">Order ID</th>
                   <th className="p-4">Gear Item</th>
                   <th className="p-4">Rental Dates</th>
+                  <th className="p-4">Num. of Stocks</th>
                   <th className="p-4">Total</th>
                   <th className="p-4">Status</th>
                   <th className="p-4 text-right">Actions</th>
@@ -85,7 +89,7 @@ export default function CustomerDashboard() {
               <tbody className="divide-y divide-gray-100 text-sm text-black">
                 {orders.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="p-8 text-center text-gray-500">
+                    <td colSpan={7} className="p-8 text-center text-gray-500">
                       You haven't placed any rental orders yet.
                     </td>
                   </tr>
@@ -96,6 +100,9 @@ export default function CustomerDashboard() {
                       <td className="p-4 text-gray-900 font-semibold">{order.gearItem?.title || order.gearItem?.name || order.gearName || 'N/A'}</td>
                       <td className="p-4 text-gray-600">
                         {order.startDate.split('T')[0]} to {order.endDate.split('T')[0]}
+                      </td>
+                      <td className="p-4 font-medium text-gray-800">
+                        {order.quantity ?? order.numStocks ?? order.stocks ?? 1}
                       </td>
                       <td className="p-4 font-medium">${order.totalPrice}</td>
                       <td className="p-4">
@@ -126,7 +133,7 @@ export default function CustomerDashboard() {
                             className="inline-block bg-gray-900 text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-black transition"
                           >
                             Leave Review
-                          </Link>
+                        </Link>
                         )}
                         <Link
                           href={`/dashboard/customer/orders/${order.id}`}

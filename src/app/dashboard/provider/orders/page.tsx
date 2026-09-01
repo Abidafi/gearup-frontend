@@ -61,7 +61,7 @@ export default function ProviderOrdersPage() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6 text-black">Manage Incoming Orders</h1>
+      <h1 className="text-2xl font-bold mb-6 text-white">Manage Incoming Orders</h1>
 
       {orders.length === 0 ? (
         <p className="text-gray-500">No incoming rental orders found.</p>
