@@ -6,7 +6,7 @@ import { api } from '@/lib/axios';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Calendar, Tag, ArrowLeft, Loader2, ShieldCheck, Hash, Star } from 'lucide-react';
+import { Calendar, Tag, ArrowLeft, Loader2, ShieldCheck, Hash, Star, CheckCircle2 } from 'lucide-react';
 
 interface RentalDetail {
   id: string;
@@ -42,6 +42,7 @@ export default function LeaveReviewPage({ params }: { params: Promise<{ id: stri
   const [rating, setRating] = useState<number>(5);
   const [comment, setComment] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
 
   useEffect(() => {
     if (orderId) {
@@ -67,11 +68,13 @@ export default function LeaveReviewPage({ params }: { params: Promise<{ id: stri
         rating: Number(rating),
         comment,
       });
+      setIsSubmitted(true);
       toast.success('Thank you! Your review has been submitted successfully.');
-      router.push('/dashboard/customer');
+      setTimeout(() => {
+        router.push('/dashboard/customer');
+      }, 1500);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to submit review.');
-    } finally {
       setSubmitting(false);
     }
   };
@@ -188,8 +191,9 @@ export default function LeaveReviewPage({ params }: { params: Promise<{ id: stri
                   <label className="block text-xs font-medium text-slate-400">Rating (1 to 5 Stars)</label>
                   <select
                     value={rating}
+                    disabled={isSubmitted}
                     onChange={(e) => setRating(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                   >
                     <option value={5}>⭐⭐⭐⭐⭐ (5 - Excellent)</option>
                     <option value={4}>⭐⭐⭐⭐ (4 - Good)</option>
@@ -204,22 +208,32 @@ export default function LeaveReviewPage({ params }: { params: Promise<{ id: stri
                   <textarea
                     rows={3}
                     required
+                    disabled={isSubmitted}
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     placeholder="How was the gear condition, pickup, and overall rental process?"
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="w-full mt-2 py-3.5 px-4 rounded-xl font-semibold shadow-lg transition-all text-sm flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/30 disabled:opacity-50"
+                  disabled={submitting || isSubmitted}
+                  className={`w-full mt-2 py-3.5 px-4 rounded-xl font-semibold shadow-lg transition-all text-sm flex items-center justify-center gap-2 ${
+                    isSubmitted 
+                      ? 'bg-emerald-600 text-white cursor-not-allowed shadow-emerald-600/20' 
+                      : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/30'
+                  } disabled:opacity-70`}
                 >
                   {submitting ? (
                     <>
                       <Loader2 className="h-5 w-5 animate-spin" />
                       Submitting Review...
+                    </>
+                  ) : isSubmitted ? (
+                    <>
+                      <CheckCircle2 className="h-5 w-5" />
+                      Review Submitted
                     </>
                   ) : (
                     <>

@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/axios';
 import Image from 'next/image';
 import { toast } from 'sonner';
-import { Calendar, Tag, ArrowLeft, Loader2, ShieldCheck, Hash, CreditCard, RotateCcw } from 'lucide-react';
+import { Calendar, Tag, ArrowLeft, Loader2, ShieldCheck, Hash, CreditCard, RotateCcw, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
 interface RentalDetail {
@@ -57,10 +57,14 @@ export default function RentalOrderDetailsPage() {
   const handleReturnGear = async () => {
     try {
       setIsReturning(true);
-      // Calls PATCH /api/rentals/:id with status RETURNED
       await api.patch(`/rentals/${id}`, { status: 'RETURNED' });
       toast.success('Gear returned successfully!');
-      router.push(`/dashboard/customer/orders/${id}/review`);
+      
+      // Refresh order details to reflect 'RETURNED' state instantly without redirecting
+      const res = await api.get(`/rentals/${id}`);
+      const responseData = res.data?.data || res.data?.rental || res.data;
+      setOrder(responseData);
+      setIsReturning(false);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to return the gear.');
       setIsReturning(false);
@@ -224,19 +228,20 @@ export default function RentalOrderDetailsPage() {
                   ) : (
                     <>
                       <RotateCcw className="h-4 w-4" />
-                      Return the Gear and make a Review
+                      Return the Gear
                     </>
                   )}
                 </button>
               )}
 
               {order.status === 'RETURNED' && (
-                <Link
-                  href={`/dashboard/customer/orders/${order.id}/review`}
-                  className="w-full mt-2 py-3.5 px-4 rounded-xl font-semibold shadow-lg transition-all text-sm flex items-center justify-center gap-2 bg-slate-100 hover:bg-white text-slate-900"
+                <button
+                  disabled
+                  className="w-full mt-2 py-3.5 px-4 rounded-xl font-semibold shadow-lg text-sm flex items-center justify-center gap-2 bg-slate-800 text-slate-400 border border-slate-700 cursor-not-allowed opacity-80"
                 >
-                  Leave Review
-                </Link>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  Gear Returned
+                </button>
               )}
 
               <div className="flex items-center justify-center gap-2 text-xs text-slate-500 pt-2">

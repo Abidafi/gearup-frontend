@@ -9,9 +9,11 @@ import Link from 'next/link';
 interface RentalOrder {
   id: string;
   gearItem?: {
+    id?: string;
     title?: string;
     name?: string;
   };
+  gearId?: string;
   gearName?: string;
   startDate: string;
   endDate: string;
@@ -19,23 +21,34 @@ interface RentalOrder {
   numStocks?: number;
   stocks?: number;
   totalPrice: number;
-  status: 'PLACED' | 'CONFIRMED' | 'PAID' | 'PICKED_UP' | 'RETURNED' | 'CANCELLED';
+  status: string;
 }
 
 export default function CustomerDashboard() {
   const router = useRouter();
   const [orders, setOrders] = useState<RentalOrder[]>([]);
+  const [reviewedGearIds, setReviewedGearIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchCustomerOrders = async () => {
+  const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/rentals');
-      const responseData = res.data.data || res.data.orders || res.data;
-      const ordersArray = Array.isArray(responseData) ? responseData : [];
-      setOrders(ordersArray);
+      // Fetch rentals and user's reviews simultaneously
+      const [rentalsRes, reviewsRes] = await Promise.all([
+        api.get('/rentals'),
+        api.get('/reviews/my-reviews').catch(() => ({ data: { data: [] } })) // Fallback if endpoint differs, or check user reviews
+      ]);
+
+      const rentalData = rentalsRes.data.data || rentalsRes.data.orders || rentalsRes.data;
+      setOrders(Array.isArray(rentalData) ? rentalData : []);
+
+      // Extract reviewed gear IDs or handle review matching
+      const reviewData = reviewsRes.data.data || reviewsRes.data || [];
+      const gearIdsWithReviews = reviewData.map((r: any) => r.gearItemId || r.gearItem?.id);
+      setReviewedGearIds(gearIdsWithReviews);
+
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to load your orders.');
+      toast.error(err.response?.data?.message || 'Failed to load your dashboard data.');
       setOrders([]);
     } finally {
       setLoading(false);
@@ -43,7 +56,7 @@ export default function CustomerDashboard() {
   };
 
   useEffect(() => {
-    fetchCustomerOrders();
+    fetchDashboardData();
   }, []);
 
   if (loading) {
@@ -58,7 +71,6 @@ export default function CustomerDashboard() {
     <div className="min-h-screen bg-gray-50 p-6 md:p-8">
       <div className="max-w-6xl mx-auto space-y-8">
         
-        {/* Header */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">My Rental Dashboard 🎒</h1>
@@ -66,7 +78,6 @@ export default function CustomerDashboard() {
           </div>
         </div>
 
-        {/* Orders Table Card */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-6 border-b border-gray-100">
             <h2 className="text-xl font-semibold text-gray-800">Rental Orders</h2>
@@ -94,56 +105,67 @@ export default function CustomerDashboard() {
                     </td>
                   </tr>
                 ) : (
-                  orders.map((order) => (
-                    <tr key={order.id} className="hover:bg-gray-50/50 transition">
-                      <td className="p-4 font-medium">#{order.id.slice(-6)}</td>
-                      <td className="p-4 text-gray-900 font-semibold">{order.gearItem?.title || order.gearItem?.name || order.gearName || 'N/A'}</td>
-                      <td className="p-4 text-gray-600">
-                        {order.startDate.split('T')[0]} to {order.endDate.split('T')[0]}
-                      </td>
-                      <td className="p-4 font-medium text-gray-800">
-                        {order.quantity ?? order.numStocks ?? order.stocks ?? 1}
-                      </td>
-                      <td className="p-4 font-medium">${order.totalPrice}</td>
-                      <td className="p-4">
-                        <span
-                          className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
-                            order.status === 'PLACED' ? 'bg-amber-100 text-amber-800' :
-                            order.status === 'CONFIRMED' ? 'bg-blue-100 text-blue-800' :
-                            order.status === 'PAID' ? 'bg-purple-100 text-purple-800' :
-                            order.status === 'PICKED_UP' ? 'bg-green-100 text-green-800' :
-                            order.status === 'RETURNED' ? 'bg-gray-100 text-gray-800' : 'bg-red-100 text-red-800'
-                          }`}
-                        >
-                          {order.status}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right space-x-2">
-                        {order.status === 'CONFIRMED' && (
-                          <Link
-                            href={`/dashboard/customer/orders/${order.id}/pay`}
-                            className="inline-block bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-blue-700 transition"
+                  orders.map((order) => {
+                    const gearTargetId = order.gearItem?.id || order.gearId;
+                    const isReviewed = reviewedGearIds.includes(gearTargetId!);
+
+                    return (
+                      <tr key={order.id} className="hover:bg-gray-50/50 transition">
+                        <td className="p-4 font-medium">#{order.id.slice(-6)}</td>
+                        <td className="p-4 text-gray-900 font-semibold">{order.gearItem?.title || order.gearItem?.name || order.gearName || 'N/A'}</td>
+                        <td className="p-4 text-gray-600">
+                          {order.startDate.split('T')[0]} to {order.endDate.split('T')[0]}
+                        </td>
+                        <td className="p-4 font-medium text-gray-800">
+                          {order.quantity ?? order.numStocks ?? order.stocks ?? 1}
+                        </td>
+                        <td className="p-4 font-medium">${order.totalPrice}</td>
+                        <td className="p-4">
+                          <span
+                            className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
+                              order.status === 'PLACED' ? 'bg-amber-100 text-amber-800' :
+                              order.status === 'CONFIRMED' ? 'bg-blue-100 text-blue-800' :
+                              order.status === 'PAID' ? 'bg-purple-100 text-purple-800' :
+                              order.status === 'PICKED_UP' ? 'bg-green-100 text-green-800' :
+                              order.status === 'RETURNED' ? 'bg-gray-100 text-gray-800' : 'bg-red-100 text-red-800'
+                            }`}
                           >
-                            Pay Now
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className="p-4 text-right space-x-2">
+                          {order.status === 'CONFIRMED' && (
+                            <Link
+                              href={`/dashboard/customer/orders/${order.id}/pay`}
+                              className="inline-block bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-blue-700 transition"
+                            >
+                              Pay Now
+                            </Link>
+                          )}
+                          {order.status === 'RETURNED' && (
+                            isReviewed ? (
+                              <span className="inline-block bg-gray-200 text-gray-500 text-xs font-semibold px-3 py-1.5 rounded cursor-not-allowed select-none">
+                                Review Submitted
+                              </span>
+                            ) : (
+                              <Link
+                                href={`/dashboard/customer/orders/${order.id}/review`}
+                                className="inline-block bg-gray-900 text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-black transition"
+                              >
+                                Leave Review
+                              </Link>
+                            )
+                          )}
+                          <Link
+                            href={`/dashboard/customer/orders/${order.id}`}
+                            className="inline-block border border-gray-300 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded hover:bg-gray-50 transition"
+                          >
+                            Details
                           </Link>
-                        )}
-                        {order.status === 'RETURNED' && (
-                          <Link
-                            href={`/dashboard/customer/orders/${order.id}/review`}
-                            className="inline-block bg-gray-900 text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-black transition"
-                          >
-                            Leave Review
-                        </Link>
-                        )}
-                        <Link
-                          href={`/dashboard/customer/orders/${order.id}`}
-                          className="inline-block border border-gray-300 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded hover:bg-gray-50 transition"
-                        >
-                          Details
-                        </Link>
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
