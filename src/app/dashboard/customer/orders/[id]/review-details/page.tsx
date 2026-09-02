@@ -64,9 +64,6 @@ export default function ReviewDetailsPage({ params }: { params: Promise<{ id: st
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center space-y-4">
         <p className="text-slate-400">Review not found or not yet submitted.</p>
-        <Link href="/dashboard/customer" className="text-blue-400 hover:underline text-sm font-semibold">
-          Return to Dashboard
-        </Link>
       </div>
     );
   }
