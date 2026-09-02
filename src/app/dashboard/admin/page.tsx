@@ -54,9 +54,18 @@ export default function AdminDashboard() {
       const gearData = gearRes.data.gear || gearRes.data.data || gearRes.data;
       const rentalsData = rentalsRes.data.rentals || rentalsRes.data.data || rentalsRes.data;
 
+      const rawUsersList = Array.isArray(usersData) ? usersData : [];
       const rawGearList = Array.isArray(gearData) ? gearData : [];
       const rawRentalsList = Array.isArray(rentalsData) ? rentalsData : [];
       
+      const formattedUsers = rawUsersList.map((u: any) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        status: u.isSuspended ? 'SUSPENDED' : 'ACTIVE',
+      }));
+
       const formattedGear = rawGearList.map((item: any) => ({
         id: item.id,
         name: item.title || item.name || 'N/A',
@@ -70,7 +79,6 @@ export default function AdminDashboard() {
         providerName: item.provider?.name || item.providerName || 'N/A',
       }));
 
-      // Mapped rentals to cleanly pull gearName and renterName from backend relations
       const formattedRentals = rawRentalsList.map((order: any) => ({
         id: order.id,
         gearName: order.gearItem?.title || order.gearItem?.name || order.gearName || 'N/A',
@@ -81,7 +89,7 @@ export default function AdminDashboard() {
         status: order.status || 'PENDING',
       }));
 
-      setUsers(Array.isArray(usersData) ? usersData : []);
+      setUsers(formattedUsers);
       setGearListings(formattedGear);
       setRentals(formattedRentals);
     } catch (err: any) {
@@ -99,9 +107,10 @@ export default function AdminDashboard() {
   }, []);
 
   const handleStatusToggle = async (userId: string, currentStatus?: string) => {
-    const newStatus = currentStatus === 'SUSPENDED' ? 'ACTIVE' : 'SUSPENDED';
+    const willBeSuspended = currentStatus !== 'SUSPENDED';
     try {
-      await api.patch(`/admin/users/${userId}`, { status: newStatus });
+      await api.patch(`/admin/users/${userId}`, { isSuspended: willBeSuspended });
+      const newStatus = willBeSuspended ? 'SUSPENDED' : 'ACTIVE';
       toast.success(`User successfully ${newStatus.toLowerCase()}!`);
       setUsers(prev =>
         prev.map(u => (u.id === userId ? { ...u, status: newStatus } : u))
