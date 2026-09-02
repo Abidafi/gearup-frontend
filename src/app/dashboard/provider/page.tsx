@@ -52,10 +52,11 @@ export default function ProviderDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex justify-between items-center">
+        
+        {/* Header - Fixed to wrap cleanly on mobile screens */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-black">
               Provider Dashboard 🏪
@@ -67,7 +68,7 @@ export default function ProviderDashboard() {
           <div className="flex gap-3">
             <Link
               href="/dashboard/provider/gear/new"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition text-center"
             >
               + Add New Gear
             </Link>
