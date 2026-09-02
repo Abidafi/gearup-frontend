@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '@/lib/axios';
 import { toast } from 'sonner';
+import Link from 'next/link';
 
 interface Order {
   id: string;
@@ -60,78 +61,124 @@ export default function ProviderOrdersPage() {
   if (loading) return <div className="p-10 text-center text-black">Loading incoming orders...</div>;
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6 text-white">Manage Incoming Orders</h1>
+    <div className="p-8 max-w-6xl mx-auto space-y-12">
+      <div>
+        <h1 className="text-2xl font-bold mb-6 text-white">Manage Incoming Orders</h1>
 
-      {orders.length === 0 ? (
-        <p className="text-gray-500">No incoming rental orders found.</p>
-      ) : (
-        <div className="overflow-x-auto bg-white shadow rounded-lg border">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gear</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Renter</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dates</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200 text-black text-sm">
-              {orders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50/50">
-                  <td className="px-6 py-4 whitespace-nowrap font-medium">#{order.id.slice(-6)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-600">{order.gearName}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-600">{order.renterName}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                    {order.startDate} to {order.endDate}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">${order.totalPrice}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      order.status === 'PLACED' ? 'bg-amber-100 text-amber-800' :
-                      order.status === 'CONFIRMED' ? 'bg-blue-100 text-blue-800' :
-                      order.status === 'PAID' ? 'bg-purple-100 text-purple-800' :
-                      order.status === 'PICKED_UP' ? 'bg-green-100 text-green-800' :
-                      order.status === 'RETURNED' ? 'bg-gray-100 text-gray-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                    {order.status === 'PLACED' && (
-                      <button
-                        onClick={() => handleStatusUpdate(order.id, 'CONFIRMED')}
-                        className="text-green-600 bg-green-50 px-3 py-1 rounded border border-green-200 hover:bg-green-100"
-                      >
-                        Confirm
-                      </button>
-                    )}
-                    {order.status === 'PAID' && (
-                      <button
-                        onClick={() => handleStatusUpdate(order.id, 'PICKED_UP')}
-                        className="text-purple-600 bg-purple-50 px-3 py-1 rounded border border-purple-200 hover:bg-purple-100"
-                      >
-                        Mark Picked Up
-                      </button>
-                    )}
-                    {order.status !== 'CANCELLED' && order.status !== 'RETURNED' && order.status !== 'PICKED_UP' && (
-                      <button
-                        onClick={() => handleStatusUpdate(order.id, 'CANCELLED')}
-                        className="text-red-600 bg-red-50 px-3 py-1 rounded border border-red-200 hover:bg-red-100"
-                      >
-                        Cancel
-                      </button>
-                    )}
-                  </td>
+        {orders.length === 0 ? (
+          <p className="text-gray-400">No incoming rental orders found.</p>
+        ) : (
+          <div className="overflow-x-auto bg-white shadow rounded-lg border">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gear</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Renter</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dates</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200 text-black text-sm">
+                {orders.map((order) => (
+                  <tr key={order.id} className="hover:bg-gray-50/50">
+                    <td className="px-6 py-4 whitespace-nowrap font-medium">#{order.id.slice(-6)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-600">{order.gearName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-600">{order.renterName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                      {order.startDate} to {order.endDate}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">${order.totalPrice}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        order.status === 'PLACED' ? 'bg-amber-100 text-amber-800' :
+                        order.status === 'CONFIRMED' ? 'bg-blue-100 text-blue-800' :
+                        order.status === 'PAID' ? 'bg-purple-100 text-purple-800' :
+                        order.status === 'PICKED_UP' ? 'bg-green-100 text-green-800' :
+                        order.status === 'RETURNED' ? 'bg-gray-100 text-gray-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                      {order.status === 'PLACED' && (
+                        <button
+                          onClick={() => handleStatusUpdate(order.id, 'CONFIRMED')}
+                          className="text-green-600 bg-green-50 px-3 py-1 rounded border border-green-200 hover:bg-green-100"
+                        >
+                          Confirm
+                        </button>
+                      )}
+                      {order.status === 'PAID' && (
+                        <button
+                          onClick={() => handleStatusUpdate(order.id, 'PICKED_UP')}
+                          className="text-purple-600 bg-purple-50 px-3 py-1 rounded border border-purple-200 hover:bg-purple-100"
+                        >
+                          Mark Picked Up
+                        </button>
+                      )}
+                      {order.status !== 'CANCELLED' && order.status !== 'RETURNED' && order.status !== 'PICKED_UP' && (
+                        <button
+                          onClick={() => handleStatusUpdate(order.id, 'CANCELLED')}
+                          className="text-red-600 bg-red-50 px-3 py-1 rounded border border-red-200 hover:bg-red-100"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <h2 className="text-2xl font-bold mb-6 text-white">Product Review details</h2>
+
+        {orders.length === 0 ? (
+          <p className="text-gray-400">No product review entries available.</p>
+        ) : (
+          <div className="overflow-x-auto bg-white shadow rounded-lg border">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gear</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Renter</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dates</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Show Reviews</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200 text-black text-sm">
+                {orders.map((order) => (
+                  <tr key={`review-${order.id}`} className="hover:bg-gray-50/50">
+                    <td className="px-6 py-4 whitespace-nowrap font-medium">#{order.id.slice(-6)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-600">{order.gearName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-600">{order.renterName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                      {order.startDate} to {order.endDate}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">${order.totalPrice}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <Link
+                        href={`/dashboard/customer/orders/${order.id}/review-details`}
+                        className="inline-block bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded hover:bg-black transition"
+                      >
+                        Show Reviews
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

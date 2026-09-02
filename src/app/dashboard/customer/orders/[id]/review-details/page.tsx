@@ -79,14 +79,8 @@ export default function ReviewDetailsPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="min-h-screen bg-slate-950 text-white pb-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <Link 
-          href="/dashboard/customer" 
-          className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm font-semibold transition-colors mb-6"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back to Dashboard
-        </Link>
-
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">  
+        
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           
           <div className="space-y-6">
