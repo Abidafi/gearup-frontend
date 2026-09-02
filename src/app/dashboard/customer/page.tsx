@@ -24,36 +24,58 @@ interface RentalOrder {
   status: string;
 }
 
+interface PaymentRecord {
+  id: string;
+  transactionId: string;
+  amount: number;
+  method?: string;
+  status: string;
+  paidAt: string;
+  rentalOrderId: string;
+  rentalOrder?: {
+    id: string;
+    gearItem?: {
+      title?: string;
+      name?: string;
+    };
+    gearName?: string;
+  };
+}
+
 export default function CustomerDashboard() {
   const router = useRouter();
   const [orders, setOrders] = useState<RentalOrder[]>([]);
+  const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [reviewedGearIds, setReviewedGearIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      // Fetch rentals and user's reviews simultaneously
-      const [rentalsRes, reviewsRes] = await Promise.all([
+      const [rentalsRes, reviewsRes, paymentsRes] = await Promise.all([
         api.get("/rentals"),
-        api.get("/reviews/my-reviews").catch(() => ({ data: { data: [] } })), // Fallback if endpoint differs, or check user reviews
+        api.get("/reviews/my-reviews").catch(() => ({ data: { data: [] } })),
+        api.get("/payments/history").catch(() => ({ data: { data: [] } })),
       ]);
 
       const rentalData =
         rentalsRes.data.data || rentalsRes.data.orders || rentalsRes.data;
       setOrders(Array.isArray(rentalData) ? rentalData : []);
 
-      // Extract reviewed gear IDs or handle review matching
       const reviewData = reviewsRes.data.data || reviewsRes.data || [];
       const gearIdsWithReviews = reviewData.map(
         (r: any) => r.gearItemId || r.gearItem?.id,
       );
       setReviewedGearIds(gearIdsWithReviews);
+
+      const paymentData = paymentsRes.data.data || paymentsRes.data || [];
+      setPayments(Array.isArray(paymentData) ? paymentData : []);
     } catch (err: any) {
       toast.error(
         err.response?.data?.message || "Failed to load your dashboard data.",
       );
       setOrders([]);
+      setPayments([]);
     } finally {
       setLoading(false);
     }
@@ -87,13 +109,14 @@ export default function CustomerDashboard() {
           </div>
         </div>
 
+        {/* Rental Orders Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-6 border-b border-gray-100">
             <h2 className="text-xl font-semibold text-gray-800">
               Rental Orders
             </h2>
             <p className="text-sm text-gray-500 mt-0.5">
-              Overview of all your active and past gear requests
+              Overview of all your gear requests
             </p>
           </div>
 
@@ -201,6 +224,79 @@ export default function CustomerDashboard() {
                       </tr>
                     );
                   })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Payment History Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-6 border-b border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-800">
+              Payment History
+            </h2>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Track of all your completed transaction records
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
+                  <th className="p-4">Order ID</th>
+                  <th className="p-4">Gear Item</th>
+                  <th className="p-4">Transaction Id</th>
+                  <th className="p-4">Amount</th>
+                  <th className="p-4">Method</th>
+                  <th className="p-4">Paid At</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-sm text-black">
+                {payments.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-gray-500">
+                      No payment history records found.
+                    </td>
+                  </tr>
+                ) : (
+                  payments.map((payment) => (
+                    <tr
+                      key={payment.id}
+                      className="hover:bg-gray-50/50 transition"
+                    >
+                      <td className="p-4 font-medium">
+                        #{payment.rentalOrderId.slice(-6)}
+                      </td>
+                      <td className="p-4 text-gray-900 font-semibold">
+                        {payment.rentalOrder?.gearItem?.title ||
+                          payment.rentalOrder?.gearItem?.name ||
+                          payment.rentalOrder?.gearName ||
+                          "N/A"}
+                      </td>
+                      <td className="p-4 text-gray-600 font-mono text-xs">
+                        {payment.transactionId}
+                      </td>
+                      <td className="p-4 font-medium text-emerald-600">
+                        ${payment.amount}
+                      </td>
+                      <td className="p-4 uppercase text-xs font-bold text-gray-700">
+                        {payment.method || "STRIPE"}
+                      </td>
+                      <td className="p-4 text-gray-600 text-xs">
+                        {new Date(payment.paidAt).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}{" "}
+                        {new Date(payment.paidAt).toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
