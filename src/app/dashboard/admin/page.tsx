@@ -50,14 +50,40 @@ export default function AdminDashboard() {
         api.get('/admin/rentals'),
       ]);
 
-      // Safely extract arrays from various possible response formats
       const usersData = usersRes.data.users || usersRes.data.data || usersRes.data;
       const gearData = gearRes.data.gear || gearRes.data.data || gearRes.data;
       const rentalsData = rentalsRes.data.rentals || rentalsRes.data.data || rentalsRes.data;
 
+      const rawGearList = Array.isArray(gearData) ? gearData : [];
+      const rawRentalsList = Array.isArray(rentalsData) ? rentalsData : [];
+      
+      const formattedGear = rawGearList.map((item: any) => ({
+        id: item.id,
+        name: item.title || item.name || 'N/A',
+        category: 
+          item.categoryName || 
+          item.category?.name || 
+          item.category?.title || 
+          item.category || 
+          'General',
+        pricePerDay: item.pricePerDay || item.price || 0,
+        providerName: item.provider?.name || item.providerName || 'N/A',
+      }));
+
+      // Mapped rentals to cleanly pull gearName and renterName from backend relations
+      const formattedRentals = rawRentalsList.map((order: any) => ({
+        id: order.id,
+        gearName: order.gearItem?.title || order.gearItem?.name || order.gearName || 'N/A',
+        renterName: order.customer?.name || order.renterName || 'N/A',
+        startDate: order.startDate ? order.startDate.split('T')[0] : '',
+        endDate: order.endDate ? order.endDate.split('T')[0] : '',
+        totalPrice: order.totalPrice || order.total || 0,
+        status: order.status || 'PENDING',
+      }));
+
       setUsers(Array.isArray(usersData) ? usersData : []);
-      setGearListings(Array.isArray(gearData) ? gearData : []);
-      setRentals(Array.isArray(rentalsData) ? rentalsData : []);
+      setGearListings(formattedGear);
+      setRentals(formattedRentals);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to load admin data.');
       setUsers([]);
@@ -72,7 +98,6 @@ export default function AdminDashboard() {
     fetchAdminData();
   }, []);
 
-  // Handle Suspend / Activate user action
   const handleStatusToggle = async (userId: string, currentStatus?: string) => {
     const newStatus = currentStatus === 'SUSPENDED' ? 'ACTIVE' : 'SUSPENDED';
     try {
@@ -265,7 +290,7 @@ export default function AdminDashboard() {
                         <td className="p-4 text-gray-800 font-semibold">{item.name}</td>
                         <td className="p-4 text-gray-600">{item.category}</td>
                         <td className="p-4">${item.pricePerDay}</td>
-                        <td className="p-4 text-gray-600">{item.providerName || 'N/A'}</td>
+                        <td className="p-4 text-gray-600">{item.providerName}</td>
                       </tr>
                     ))
                   )}
@@ -303,7 +328,7 @@ export default function AdminDashboard() {
                     rentals.map((order) => (
                       <tr key={order.id} className="hover:bg-gray-50/50">
                         <td className="p-4 font-medium">#{order.id.slice(-6)}</td>
-                        <td className="p-4 text-gray-800">{order.gearName}</td>
+                        <td className="p-4 text-gray-800 font-semibold">{order.gearName}</td>
                         <td className="p-4 text-gray-600">{order.renterName}</td>
                         <td className="p-4 text-gray-600">{order.startDate} to {order.endDate}</td>
                         <td className="p-4">${order.totalPrice}</td>
